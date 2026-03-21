@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Combat Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080a0f;
+  --surface: #0c0f15;
+  --border: #1a2030;
+  --sun: #f5c842;
+  --sun-glow: #f5c84218;
+  --storm: #46e573;
+  --storm-glow: #5b9cf618;
+  --moon: #183de2;
+  --moon-glow: #c084fc18;
+  --text: #e8dcc8;
+  --muted: #4a5568;
+  --accent: #c8a96e;
+  --g1: #e07b4f;
+  --g1-dim: #e07b4f22;
+  --g2: #4fa8e0;
+  --g2-dim: #4fa8e022;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body { height:100%; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Crimson Pro', serif;
+  height: 100dvh;
+  overflow: hidden;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+}
+
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 0%, #1a0a2e22 0%, transparent 55%),
+    radial-gradient(ellipse 60% 60% at 85% 100%, #0a1a2e22 0%, transparent 55%);
+  pointer-events:none; z-index:0;
+}
+
+.stars { position:fixed; inset:0; pointer-events:none; z-index:0; }
+.star {
+  position:absolute; border-radius:50%; background:white; opacity:0;
+  animation: twinkle var(--dur,3s) ease-in-out infinite var(--delay,0s);
+}
+@keyframes twinkle { 0%,100%{opacity:0} 50%{opacity:var(--op,.5)} }
+
+/* ══ TOP BAR ══ */
+.topbar {
+  position:relative; z-index:20;
+  height:52px;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 14px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0; gap:10px;
+}
+.topbar-left  { display:flex; align-items:center; gap:10px; min-width:0; }
+.topbar-right { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+
+.site-title {
+  font-family:'Cinzel',serif; font-size:0.72rem; font-weight:900;
+  letter-spacing:0.18em; color:var(--accent); text-shadow:0 0 20px #c8a96e44;
+  white-space:nowrap; flex-shrink:0;
+}
+.vbar { width:1px; height:16px; background:var(--border); flex-shrink:0; }
+
+.group-toggle { display:flex; border:1px solid var(--border); border-radius:3px; overflow:hidden; flex-shrink:0; }
+.group-btn {
+  font-family:'Cinzel',serif; font-size:0.62rem; font-weight:600;
+  letter-spacing:0.1em; padding:5px 13px;
+  border:none; cursor:pointer; background:transparent;
+  color:var(--muted); transition:all .18s; white-space:nowrap;
+}
+.group-btn+.group-btn { border-left:1px solid var(--border); }
+.group-btn.g1.active { background:var(--g1); color:#080a0f; }
+.group-btn.g2.active { background:var(--g2); color:#080a0f; }
+.group-btn:not(.active):hover { color:var(--accent); }
+
+.mode-toggle { display:flex; border:1px solid var(--border); border-radius:3px; overflow:hidden; flex-shrink:0; }
+.mode-btn {
+  font-family:'Cinzel',serif; font-size:0.6rem; font-weight:600;
+  letter-spacing:0.07em; padding:5px 10px;
+  border:none; cursor:pointer; background:transparent;
+  color:var(--muted); transition:all .18s; white-space:nowrap;
+}
+.mode-btn+.mode-btn { border-left:1px solid var(--border); }
+.mode-btn.active { background:#c8a96e15; color:var(--accent); }
+.mode-btn:not(.active):hover { color:var(--text); }
+
+/* ══ STAGE BAR ══ */
+.stagebar {
+  position:relative; z-index:19;
+  height:48px;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 14px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0; gap:10px;
+}
+.stagebar.hidden-bar { display:none; }
+
+.stage-nav-btn {
+  font-family:'Cinzel',serif; font-size:0.68rem; font-weight:600;
+  letter-spacing:0.08em; padding:7px 16px; border-radius:3px;
+  border:1px solid var(--border); cursor:pointer;
+  background:transparent; color:var(--muted); transition:all .18s; flex-shrink:0;
+}
+.stage-nav-btn:hover:not(:disabled) { border-color:var(--accent); color:var(--accent); }
+.stage-nav-btn:disabled { opacity:0.2; cursor:not-allowed; }
+
+.stage-center {
+  display:flex; flex-direction:column; align-items:center; gap:3px; flex:1;
+}
+.stage-center-label {
+  font-family:'Cinzel',serif; font-size:0.5rem; letter-spacing:0.28em; color:var(--muted);
+}
+.stage-center-num {
+  font-family:'Cinzel',serif; font-size:1.1rem; font-weight:900; color:var(--accent); line-height:1;
+}
+.stage-dots { display:flex; gap:8px; }
+.stage-dot {
+  width:7px; height:7px; border-radius:50%;
+  border:1px solid var(--muted); cursor:pointer; transition:all .16s; background:transparent;
+}
+.stage-dot.active { background:var(--accent); border-color:var(--accent); box-shadow:0 0 5px var(--accent); }
+.stage-dot.done   { background:#c8a96e30; border-color:#c8a96e55; }
+
+/* ══ MAIN ══ */
+.main { position:relative; z-index:1; flex:1; display:flex; flex-direction:column; overflow:hidden; min-height:0; }
+.hidden { display:none !important; }
+
+/* ══ DETAIL MODE ══ */
+.detail-view {
+  flex:1; display:grid; grid-template-columns:repeat(3,1fr);
+  gap:1px; background:var(--border); overflow:hidden; min-height:0;
+}
+@media(max-width:600px){
+  .detail-view { grid-template-columns:1fr; overflow-y:auto; }
+}
+
+.move-col {
+  background:var(--surface); display:flex; flex-direction:column;
+  align-items:center; overflow-y:auto; padding:0 0 16px;
+}
+.move-col-header {
+  position:sticky; top:0; background:var(--surface); width:100%;
+  text-align:center; padding:10px 0 8px;
+  border-bottom:1px solid var(--border); z-index:2; flex-shrink:0;
+}
+.move-col-num { font-family:'Cinzel',serif; font-size:1.3rem; font-weight:900; color:var(--accent); line-height:1; }
+.move-col-sub { font-family:'Cinzel',serif; font-size:0.48rem; letter-spacing:0.2em; color:var(--muted); margin-top:2px; }
+.move-col-roles { display:flex; flex-direction:column; align-items:center; padding:16px 14px 0; width:100%; }
+
+.role-section { display:flex; flex-direction:column; align-items:center; width:100%; }
+.role-section+.role-section { margin-top:12px; padding-top:12px; border-top:1px solid var(--border); }
+.role-tag { font-family:'Cinzel',serif; font-size:0.48rem; letter-spacing:0.16em; color:var(--muted); margin-bottom:8px; }
+
+.action-seq { display:flex; flex-direction:column; align-items:center; width:100%; }
+.action-item { display:flex; flex-direction:column; align-items:center; width:100%; }
+.connector { width:1px; height:12px; background:linear-gradient(to bottom,#1e2a3a,transparent); }
+
+.action-node {
+  display:flex; align-items:center; justify-content:center;
+  border-radius:5px; border:1px solid transparent; width:100%;
+}
+.action-node.move { gap:8px; padding:10px 8px; border-color:#1c2840; background:#080f1e; }
+.loc-block { display:flex; flex-direction:column; align-items:center; gap:3px; flex:1; }
+.loc-icon  { font-size:1.5rem; line-height:1; }
+.loc-name  { font-family:'Cinzel',serif; font-size:0.45rem; letter-spacing:0.07em; color:var(--muted); }
+.move-arrow { font-size:0.8rem; color:#2a3a55; flex-shrink:0; }
+.action-node.stay { padding:10px 8px; border-color:#1c2840; background:#080f1e; }
+.action-node.weapons { padding:6px 0; gap:5px; flex-wrap:wrap; border:none; background:none; }
+.weapon-badge {
+  display:flex; align-items:center; gap:4px;
+  padding:5px 10px; border-radius:40px; border:1px solid;
+  font-family:'Cinzel',serif; font-size:0.56rem; font-weight:600; letter-spacing:0.05em;
+}
+.weapon-badge .w-icon { font-size:0.8rem; }
+.weapon-badge.sun   { border-color:var(--sun);   color:var(--sun);   background:var(--sun-glow); }
+.weapon-badge.storm { border-color:var(--storm); color:var(--storm); background:var(--storm-glow); }
+.weapon-badge.moon  { border-color:var(--moon);  color:var(--moon);  background:var(--moon-glow); }
+.action-node.no-change { padding:6px; border:none; background:none; opacity:0.2; }
+.nc-dots { font-size:0.9rem; letter-spacing:0.3em; color:var(--muted); }
+
+/* ══ SIMPLE MODE ══ */
+/* 3 columns, one per move — each col shows location block(s) with their weapons */
+.simple-view {
+  flex:1; display:grid; grid-template-columns:repeat(3,1fr);
+  gap:1px; background:var(--border); overflow:hidden; min-height:0;
+}
+@media(max-width:600px){
+  .simple-view { grid-template-columns:1fr; overflow-y:auto; }
+}
+
+.simple-col {
+  background:var(--surface); display:flex; flex-direction:column;
+  align-items:center; overflow-y:auto; padding:0 0 16px;
+}
+.simple-col-header {
+  position:sticky; top:0; background:var(--surface); width:100%;
+  text-align:center; padding:10px 0 8px;
+  border-bottom:1px solid var(--border); z-index:2; flex-shrink:0;
+}
+.simple-col-num { font-family:'Cinzel',serif; font-size:1.3rem; font-weight:900; color:var(--accent); line-height:1; }
+.simple-col-sub { font-family:'Cinzel',serif; font-size:0.48rem; letter-spacing:0.2em; color:var(--muted); margin-top:2px; }
+
+.simple-col-body {
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:16px 14px; gap:10px; width:100%;
+}
+
+/* When a move has two locations, show them with an arrow between */
+.simple-locs { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; }
+.simple-locs.stacked { flex-direction:column; gap:10px; }
+.simple-loc-arrow { font-size:1.2rem; color:#2a3a55; }
+
+/* Each location block: icon + name + weapon pills underneath */
+.s-loc-block {
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  flex:1; padding:14px 10px; border-radius:6px;
+  border:1px solid var(--border); background:#ffffff04;
+  min-width:0;
+}
+.s-loc-icon { font-size:2.8rem; line-height:1; }
+.s-loc-name { font-family:'Cinzel',serif; font-size:0.58rem; letter-spacing:0.12em; color:var(--muted); }
+.s-weapons  { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
+.s-badge {
+  display:flex; align-items:center; gap:5px;
+  padding:6px 12px; border-radius:40px; border:1px solid;
+  font-family:'Cinzel',serif; font-size:0.65rem; font-weight:600; letter-spacing:0.07em;
+}
+.s-badge .sb-icon { font-size:1rem; }
+.s-badge.sun   { border-color:var(--sun);   color:var(--sun);   background:var(--sun-glow); }
+.s-badge.storm { border-color:var(--storm); color:var(--storm); background:var(--storm-glow); }
+.s-badge.moon  { border-color:var(--moon);  color:var(--moon);  background:var(--moon-glow); }
+.s-badge.none  { border-color:var(--border); color:var(--muted); opacity:0.35; font-size:0.55rem; }
+
+/* ══ OVERVIEW MODE ══ */
+.overview-view { flex:1; overflow-y:auto; overflow-x:hidden; padding:14px 12px 24px; }
+
+.ov-stage-block { margin-bottom:18px; }
+.ov-stage-title {
+  font-family:'Cinzel',serif; font-size:0.58rem; font-weight:900;
+  letter-spacing:0.28em; color:var(--accent); padding:0 0 9px; text-align:center;
+}
+.ov-groups { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+@media(max-width:480px){ .ov-groups { grid-template-columns:1fr; } }
+
+.ov-group { border:1px solid var(--border); border-radius:5px; overflow:hidden; }
+.ov-group-title {
+  font-family:'Cinzel',serif; font-size:0.5rem; font-weight:600;
+  letter-spacing:0.18em; padding:6px 10px; text-align:center;
+  border-bottom:1px solid var(--border);
+}
+.ov-group.grp1 .ov-group-title { color:var(--g1); background:var(--g1-dim); }
+.ov-group.grp2 .ov-group-title { color:var(--g2); background:var(--g2-dim); }
+
+.ov-moves { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); }
+
+/* Each overview move cell: shows location block(s) with weapon dots */
+.ov-move {
+  background:var(--surface); padding:8px 6px;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+}
+.ov-move-num { font-family:'Cinzel',serif; font-size:0.46rem; letter-spacing:0.18em; color:var(--muted); }
+
+/* Two-location layout in overview */
+.ov-locs { display:flex; align-items:center; justify-content:center; gap:4px; width:100%; }
+.ov-loc-arrow { font-size:0.6rem; color:#2a3a55; }
+
+.ov-loc-block {
+  display:flex; flex-direction:column; align-items:center; gap:5px; flex:1;
+  padding:6px 4px; border-radius:4px; border:1px solid var(--border); background:#ffffff03;
+  min-width:0;
+}
+.ov-loc-icon  { font-size:1.3rem; line-height:1; }
+.ov-dots      { display:flex; gap:3px; flex-wrap:wrap; justify-content:center; }
+.ov-dot { width:8px; height:8px; border-radius:50%; }
+.ov-dot.sun   { background:var(--sun);   box-shadow:0 0 4px var(--sun); }
+.ov-dot.storm { background:var(--storm); box-shadow:0 0 4px var(--storm); }
+.ov-dot.moon  { background:var(--moon);  box-shadow:0 0 4px var(--moon); }
+.ov-dot.none  { background:var(--border); }
+
+.ov-divider { height:1px; background:var(--border); margin:12px 0; }
+
+/* ══ BOTTOM ══ */
+.bottom-bar {
+  position:relative; z-index:10; height:38px;
+  display:flex; align-items:center; justify-content:center;
+  border-top:1px solid var(--border); flex-shrink:0;
+}
+.kb-hint { font-size:0.55rem; color:#252e3a; letter-spacing:0.08em; font-style:italic; }
+@media(max-width:480px){ .bottom-bar { display:none; } }
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="site-title">☽ GUIDE ☀</div>
+    <div class="vbar"></div>
+    <div class="group-toggle" id="groupToggle">
+      <button class="group-btn g1 active" onclick="selectGroup(1)">G1</button>
+      <button class="group-btn g2"        onclick="selectGroup(2)">G2</button>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="mode-toggle">
+      <button class="mode-btn active" onclick="setMode('detail')">DETAIL</button>
+      <button class="mode-btn"        onclick="setMode('simple')">SIMPLE</button>
+      <button class="mode-btn"        onclick="setMode('overview')">OVERVIEW</button>
+    </div>
+  </div>
+</div>
+
+<!-- STAGE BAR -->
+<div class="stagebar" id="stagebar">
+  <button class="stage-nav-btn" id="stagePrev" onclick="changeStage(-1)">← STAGE</button>
+  <div class="stage-center">
+    <div class="stage-center-label">STAGE</div>
+    <div class="stage-center-num" id="stageNum">1</div>
+    <div class="stage-dots" id="stageDots"></div>
+  </div>
+  <button class="stage-nav-btn" id="stageNext" onclick="changeStage(1)">STAGE →</button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="detail-view"   id="detailView"></div>
+  <div class="simple-view hidden" id="simpleView"></div>
+  <div class="overview-view hidden" id="overviewView"></div>
+</div>
+
+<div class="bottom-bar">
+  <div class="kb-hint">1 2 3 4 · jump stage &nbsp;|&nbsp; ← → · prev/next stage</div>
+</div>
+
+<script>
+// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+const LOC = {
+  P:  { name:'Pagoda',    icon:'PAG' },
+  C:  { name:'Courtyard', icon:'COURT' },
+  Ce: { name:'Cemetery',  icon:'CEMET' },
+};
+const WEAPON = {
+  S:  { name:'Sun',   cls:'sun',   icon:'☀️' },
+  St: { name:'Storm', cls:'storm', icon:'⚡︎' },
+  M:  { name:'Moon',  cls:'moon',  icon:'☽' },
+};
+
+// ─── DATA MODEL ───────────────────────────────────────────────────────────────
+// Each move entry: { locs: [{loc, archerWeapons:[], saWeapons:[]}], ... }
+// If single location: one entry in locs
+// If transition A-B: two entries, weapons split by comma position
+
+function parseMove(locStr, arStr, saStr) {
+  const locParts = locStr.split('-');           // e.g. ['C','Ce'] or ['P']
+  const arParts  = arStr  ? arStr.split(',')  : [];
+  const saParts  = saStr  ? saStr.split(',')  : [];
+
+  if (locParts.length === 1) {
+    // Single location — all weapons here
+    return [{
+      loc: LOC[locParts[0]],
+      archer: arParts.map(w => WEAPON[w.trim()]).filter(Boolean),
+      sa:     saParts.map(w => WEAPON[w.trim()]).filter(Boolean),
+    }];
+  } else {
+    // Two locations — first weapon value → loc1, second → loc2
+    return [
+      {
+        loc: LOC[locParts[0]],
+        archer: arParts[0] ? [WEAPON[arParts[0].trim()]].filter(Boolean) : [],
+        sa:     saParts[0] ? [WEAPON[saParts[0].trim()]].filter(Boolean) : [],
+      },
+      {
+        loc: LOC[locParts[1]],
+        archer: arParts[1] ? [WEAPON[arParts[1].trim()]].filter(Boolean) : [],
+        sa:     saParts[1] ? [WEAPON[saParts[1].trim()]].filter(Boolean) : [],
+      },
+    ];
+  }
+}
+
+// stages[si][mi] = { g1: [{loc,archer,sa},...], g2: [...] }
+const stages = [
+  [ // S1
+    { g1: parseMove('P',    null,    'S,M'),  g2: parseMove('Ce',   null,  'St')   },
+    { g1: parseMove('C',    null,    'M,St'), g2: parseMove('Ce',   null,  'S')    },
+    { g1: parseMove('P-C',  null,    'St'),   g2: parseMove('Ce-C', 'S',   'M')    },
+  ],
+  [ // S2
+    { g1: parseMove('Ce',   null,    'St'),   g2: parseMove('C',    null,  'M,S')  },
+    { g1: parseMove('Ce-C', null,    'M'),    g2: parseMove('P-C',  'S',   'St')   },
+    { g1: parseMove('P',    null,    'M,S'),  g2: parseMove('C',    null,  'St')   },
+  ],
+  [ // S3
+    { g1: parseMove('C-P',  null,    'St,M'), g2: parseMove('Ce',   null,  'S')    },
+    { g1: parseMove('P-C',  null,    'M'),    g2: parseMove('Ce-C', 'S',   'St')   },
+    { g1: parseMove('C',    null,    'M'),    g2: parseMove('P',    null,  'S,St') },
+  ],
+  [ // S4
+    { g1: parseMove('C-Ce', 'St,S',  'M'),   g2: parseMove('P',    'S',   'St,M') },
+    { g1: parseMove('C',    'St,S',  'M'),   g2: parseMove('P',    'S,M', 'St')   },
+    { g1: parseMove('C',    'St',    'M,S'), g2: parseMove('P-Ce', 'S,M', 'St')   },
+  ],
+];
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let currentGroup = 1;
+let currentStage = 0;
+let currentMode  = 'detail';
+
+// ─── DETAIL MODE RENDER ───────────────────────────────────────────────────────
+// Detail mode keeps the old archer/non-archer action list format
+function detailNodeHTML(weapons) {
+  if (!weapons.length) return `<div class="action-node no-change"><div class="nc-dots">· · ·</div></div>`;
+  return `<div class="action-node weapons">
+    ${weapons.map(w=>`<div class="weapon-badge ${w.cls}"><span class="w-icon">${w.icon}</span>${w.name}</div>`).join('')}
+  </div>`;
+}
+
+function renderDetail() {
+  const gKey = `g${currentGroup}`;
+  document.getElementById('detailView').innerHTML = stages[currentStage].map((move, mi) => {
+    const locs = move[gKey]; // array of {loc, archer, sa}
+    // Build archer and sa action sequences for detail display
+    // loc display: if 1 loc, stay; if 2 locs, move
+    let locHTML = '';
+    if (locs.length === 1) {
+      locHTML = `<div class="action-node stay">
+        <div class="loc-block">
+          <div class="loc-icon">${locs[0].loc.icon}</div>
+          <div class="loc-name">${locs[0].loc.name}</div>
+        </div>
+      </div>`;
+    } else {
+      locHTML = `<div class="action-node move">
+        <div class="loc-block"><div class="loc-icon">${locs[0].loc.icon}</div><div class="loc-name">${locs[0].loc.name}</div></div>
+        <div class="move-arrow">→</div>
+        <div class="loc-block"><div class="loc-icon">${locs[1].loc.icon}</div><div class="loc-name">${locs[1].loc.name}</div></div>
+      </div>`;
+    }
+
+    // For archer and sa rows: flatten weapons across all locs
+    const allArcher = locs.flatMap(l => l.archer);
+    const allSa     = locs.flatMap(l => l.sa);
+
+    return `
+      <div class="move-col">
+        <div class="move-col-header">
+          <div class="move-col-num">${mi+1}</div>
+          <div class="move-col-sub">MOVE</div>
+        </div>
+        <div class="move-col-roles">
+          <div class="role-section">
+            <div class="role-tag">🏹 ARCHER</div>
+            <div class="action-seq">
+              <div class="action-item">${locHTML}</div>
+              <div class="action-item"><div class="connector"></div>${detailNodeHTML(allArcher)}</div>
+            </div>
+          </div>
+          <div class="role-section">
+            <div class="role-tag">⚔️ NON-ARCHER</div>
+            <div class="action-seq">
+              <div class="action-item">${locHTML}</div>
+              <div class="action-item"><div class="connector"></div>${detailNodeHTML(allSa)}</div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ─── SIMPLE MODE RENDER ───────────────────────────────────────────────────────
+// Show each location block with the combined weapons needed there (archer + sa merged)
+function locBlockHTML(locEntry, size='normal') {
+  const allW = [...locEntry.archer, ...locEntry.sa];
+  // deduplicate by cls
+  const seen = new Set();
+  const unique = allW.filter(w => { if(seen.has(w.cls)) return false; seen.add(w.cls); return true; });
+
+  const wHTML = unique.length
+    ? unique.map(w=>`<div class="s-badge ${w.cls}"><span class="sb-icon">${w.icon}</span>${w.name}</div>`).join('')
+    : `<div class="s-badge none">—</div>`;
+
+  return `
+    <div class="s-loc-block">
+      <div class="s-loc-icon">${locEntry.loc.icon}</div>
+      <div class="s-loc-name">${locEntry.loc.name}</div>
+      <div class="s-weapons">${wHTML}</div>
+    </div>`;
+}
+
+function renderSimple() {
+  const gKey = `g${currentGroup}`;
+  document.getElementById('simpleView').innerHTML = stages[currentStage].map((move, mi) => {
+    const locs = move[gKey];
+    let locsHTML = '';
+    if (locs.length === 1) {
+      locsHTML = `<div class="simple-locs">${locBlockHTML(locs[0])}</div>`;
+    } else {
+      locsHTML = `<div class="simple-locs">
+        ${locBlockHTML(locs[0])}
+        <div class="simple-loc-arrow">→</div>
+        ${locBlockHTML(locs[1])}
+      </div>`;
+    }
+    return `
+      <div class="simple-col">
+        <div class="simple-col-header">
+          <div class="simple-col-num">${mi+1}</div>
+          <div class="simple-col-sub">MOVE</div>
+        </div>
+        <div class="simple-col-body">${locsHTML}</div>
+      </div>`;
+  }).join('');
+}
+
+// ─── OVERVIEW MODE RENDER ─────────────────────────────────────────────────────
+function ovLocBlockHTML(locEntry) {
+  const allW = [...locEntry.archer, ...locEntry.sa];
+  const seen = new Set();
+  const unique = allW.filter(w => { if(seen.has(w.cls)) return false; seen.add(w.cls); return true; });
+  const dotsHTML = unique.length
+    ? unique.map(w=>`<div class="ov-dot ${w.cls}"></div>`).join('')
+    : `<div class="ov-dot none"></div>`;
+  return `
+    <div class="ov-loc-block">
+      <div class="ov-loc-icon">${locEntry.loc.icon}</div>
+      <div class="ov-dots">${dotsHTML}</div>
+    </div>`;
+}
+
+function renderOverview() {
+  document.getElementById('overviewView').innerHTML = stages.map((stageData, si) => {
+    const groupsHTML = [1,2].map(g => {
+      const gKey = `g${g}`;
+      const movesHTML = stageData.map((move, mi) => {
+        const locs = move[gKey];
+        let locsHTML = '';
+        if (locs.length === 1) {
+          locsHTML = `<div class="ov-locs">${ovLocBlockHTML(locs[0])}</div>`;
+        } else {
+          locsHTML = `<div class="ov-locs">
+            ${ovLocBlockHTML(locs[0])}
+            <div class="ov-loc-arrow">→</div>
+            ${ovLocBlockHTML(locs[1])}
+          </div>`;
+        }
+        return `
+          <div class="ov-move">
+            <div class="ov-move-num">M${mi+1}</div>
+            ${locsHTML}
+          </div>`;
+      }).join('');
+      return `
+        <div class="ov-group grp${g}">
+          <div class="ov-group-title">GROUP ${g}</div>
+          <div class="ov-moves">${movesHTML}</div>
+        </div>`;
+    }).join('');
+    return `
+      <div class="ov-stage-block">
+        <div class="ov-stage-title">STAGE ${si+1}</div>
+        <div class="ov-groups">${groupsHTML}</div>
+      </div>
+      ${si < stages.length-1 ? '<div class="ov-divider"></div>' : ''}`;
+  }).join('');
+}
+
+// ─── STAGEBAR ─────────────────────────────────────────────────────────────────
+function renderStagebar() {
+  document.getElementById('stageNum').textContent = currentStage + 1;
+  document.getElementById('stageDots').innerHTML = stages.map((_,i) =>
+    `<div class="stage-dot ${i===currentStage?'active':i<currentStage?'done':''}" onclick="selectStage(${i})"></div>`
+  ).join('');
+  document.getElementById('stagePrev').disabled = currentStage === 0;
+  document.getElementById('stageNext').disabled = currentStage === stages.length-1;
+  document.getElementById('stagebar').classList.toggle('hidden-bar', currentMode==='overview');
+  document.getElementById('groupToggle').classList.toggle('hidden', currentMode==='overview');
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function render() {
+  renderStagebar();
+  ['detailView','simpleView','overviewView'].forEach(v=>document.getElementById(v).classList.add('hidden'));
+  const map = {detail:'detailView', simple:'simpleView', overview:'overviewView'};
+  document.getElementById(map[currentMode]).classList.remove('hidden');
+  if      (currentMode==='detail')   renderDetail();
+  else if (currentMode==='simple')   renderSimple();
+  else                               renderOverview();
+  document.querySelectorAll('.mode-btn').forEach((b,i)=>
+    b.classList.toggle('active', ['detail','simple','overview'][i]===currentMode));
+}
+
+// ─── CONTROLS ─────────────────────────────────────────────────────────────────
+function selectGroup(g) {
+  currentGroup=g;
+  document.querySelectorAll('.group-btn').forEach((b,i)=>b.classList.toggle('active',i+1===g));
+  render();
+}
+function selectStage(i) { currentStage=i; render(); }
+function changeStage(dir) {
+  const s=currentStage+dir;
+  if(s<0||s>=stages.length) return;
+  currentStage=s; render();
+}
+function setMode(m) { currentMode=m; render(); }
+
+document.addEventListener('keydown', e=>{
+  if(currentMode!=='overview'){
+    if(e.key==='ArrowLeft')  changeStage(-1);
+    if(e.key==='ArrowRight') changeStage(1);
+  }
+  if(e.key==='1') selectStage(0);
+  if(e.key==='2') selectStage(1);
+  if(e.key==='3') selectStage(2);
+  if(e.key==='4') selectStage(3);
+});
+
+// ─── STARS ────────────────────────────────────────────────────────────────────
+(function(){
+  const c=document.getElementById('stars');
+  for(let i=0;i<60;i++){
+    const s=document.createElement('div'); s.className='star';
+    const sz=Math.random()*1.6+0.3;
+    s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--dur:${2+Math.random()*5}s;--delay:${Math.random()*6}s;--op:${0.18+Math.random()*0.38}`;
+    c.appendChild(s);
+  }
+})();
+
+render();
+</script>
+</body>
+</html>
